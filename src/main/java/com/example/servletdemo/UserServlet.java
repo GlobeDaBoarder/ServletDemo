@@ -23,9 +23,10 @@ public class UserServlet extends HttpServlet {
     private static final String DEPLOY_URL = "jdbc:postgresql://db:5432/users";
     private static final String USERNAME = "admin";
     private static final String PASSWORD = "admin";
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Override
-    public void init() throws ServletException {
+    public void init() {
         try {
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException e) {
@@ -36,46 +37,49 @@ public class UserServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("application/json");
-        PrintWriter out = resp.getWriter();
-
-        ObjectMapper mapper = new ObjectMapper();
 
         List<User> userList = new ArrayList<>();
 
-        // Get users from the database
-        try (Connection conn = DriverManager.getConnection(DEPLOY_URL, USERNAME, PASSWORD)) {
+        // establishing connection
+        try (Connection connection = DriverManager.getConnection(DEPLOY_URL, USERNAME, PASSWORD)) {
+            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+
             String sql = "SELECT * FROM users";
 
-            try (PreparedStatement stmt = conn.prepareStatement(sql);
-                 ResultSet rs = stmt.executeQuery()) {
+            // executing query
+            try (PreparedStatement statement = connection.prepareStatement(sql);
+                 ResultSet resultSets = statement.executeQuery()) {
 
-                while (rs.next()) {
-                    User user = new User(rs.getString("name"), rs.getString("surname"),
-                            rs.getInt("age"));
-                    userList.add(user);
+                while (resultSets.next()) {
+                    userList.add(
+                            new User(resultSets.getString("name"), resultSets.getString("surname"),
+                                    resultSets.getInt("age"))
+                    );
                 }
             }
         } catch (SQLException ex) {
             throw new ServletException(ex);
         }
 
-        out.print(mapper.writeValueAsString(userList));
-
-        out.flush();
-        out.close();
+        // writing response as json array
+        try (PrintWriter out = resp.getWriter()) {
+            out.print(MAPPER.writeValueAsString(userList));
+        }
     }
 
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String name = req.getParameter("name");
-        String surname = req.getParameter("surname");
-        int age = Integer.parseInt(req.getParameter("age"));
+        User user = new User(
+                req.getParameter("name"),
+                req.getParameter("surname"),
+                Integer.parseInt(req.getParameter("age"))
+        );
 
-        User user = new User(name, surname, age);
-
-        // Save the user in the database
         try (Connection conn = DriverManager.getConnection(DEPLOY_URL, USERNAME, PASSWORD)) {
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+
             String sql = "INSERT INTO users (name, surname, age) VALUES (?, ?, ?)";
 
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -84,6 +88,11 @@ public class UserServlet extends HttpServlet {
                 stmt.setInt(3, user.getAge());
 
                 stmt.executeUpdate();
+
+                conn.commit();
+            } catch (SQLException ex) {
+                conn.rollback();
+                throw ex;
             }
         } catch (SQLException ex) {
             throw new ServletException(ex);
