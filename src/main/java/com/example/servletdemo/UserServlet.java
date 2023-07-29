@@ -75,7 +75,7 @@ public class UserServlet extends HttpServlet {
         User user = new User(name, surname, age);
 
         // Save the user in the database
-        try (Connection conn = DriverManager.getConnection(LOCAL_DEV_URL, USERNAME, PASSWORD)) {
+        try (Connection conn = DriverManager.getConnection(DEPLOY_URL, USERNAME, PASSWORD)) {
             String sql = "INSERT INTO users (name, surname, age) VALUES (?, ?, ?)";
 
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
