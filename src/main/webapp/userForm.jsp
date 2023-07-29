@@ -10,7 +10,7 @@
 </head>
 <body>
 <div class="container">
-    <form action="/ServletDemo_war/users" method="post">
+    <form action="../users" method="post">
         <label for="name">Name:</label><br>
         <input type="text" id="name" name="name"><br>
         <label for="surname">Surname:</label><br>
