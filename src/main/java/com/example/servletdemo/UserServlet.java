@@ -15,20 +15,19 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @WebServlet(name = "userServlet", value = "/users")
 public class UserServlet extends HttpServlet {
-    private static final String URL = "jdbc:mysql://localhost:3316/users";
-    private static final String USERNAME = "root";
-    private static final String PASSWORD = "root";
+    private static final String LOCAL_DEV_URL = "jdbc:postgresql://127.0.0.5:5432/users";
+    private static final String DEPLOY_URL = "jdbc:postgresql://db:5432/users";
+    private static final String USERNAME = "admin";
+    private static final String PASSWORD = "admin";
 
     @Override
     public void init() throws ServletException {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -44,7 +43,7 @@ public class UserServlet extends HttpServlet {
         List<User> userList = new ArrayList<>();
 
         // Get users from the database
-        try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD)) {
+        try (Connection conn = DriverManager.getConnection(DEPLOY_URL, USERNAME, PASSWORD)) {
             String sql = "SELECT * FROM users";
 
             try (PreparedStatement stmt = conn.prepareStatement(sql);
@@ -76,7 +75,7 @@ public class UserServlet extends HttpServlet {
         User user = new User(name, surname, age);
 
         // Save the user in the database
-        try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD)) {
+        try (Connection conn = DriverManager.getConnection(LOCAL_DEV_URL, USERNAME, PASSWORD)) {
             String sql = "INSERT INTO users (name, surname, age) VALUES (?, ?, ?)";
 
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
