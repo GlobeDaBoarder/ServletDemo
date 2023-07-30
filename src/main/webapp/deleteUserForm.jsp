@@ -10,21 +10,13 @@
 </head>
 <body>
 <div class="container">
-    <form action="../users" method="post">
-        <label for="name">Name:</label><br>
-        <input type="text" id="name" name="name"><br>
-        <label for="surname">Surname:</label><br>
-        <input type="text" id="surname" name="surname"><br>
-        <label for="age">Age:</label><br>
-        <input type="number" id="age" name="age"><br>
-        <input type="submit" value="Submit">
+    <form action="users-delete" method="post">
+        <label for="id">Id:</label><br>
+        <input type="number" id="id" name="id"><br>
+        <input type="submit" value="Delete">
     </form>
 </div>
 
-<div class="container">
-    <ul class="block-list">
-        <li><a href="../users">list of users</a></li>
-    </ul>
-</div>
+<jsp:include page="operations.jsp"/>
 </body>
 </html>
