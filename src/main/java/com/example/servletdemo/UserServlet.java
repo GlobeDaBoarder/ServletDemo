@@ -52,8 +52,8 @@ public class UserServlet extends HttpServlet {
 
                 while (resultSets.next()) {
                     userList.add(
-                            new User(resultSets.getString("name"), resultSets.getString("surname"),
-                                    resultSets.getInt("age"))
+                            new User(resultSets.getInt("id"),resultSets.getString("name"),
+                                    resultSets.getString("surname"), resultSets.getInt("age"))
                     );
                 }
             }
